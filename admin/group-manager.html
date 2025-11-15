@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Manager - CineShelf Admin</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --bg-card: #333;
+            --text-primary: #fff;
+            --text-secondary: #999;
+            --accent: #4a9eff;
+            --accent-hover: #6bb0ff;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --border: #444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .back-btn {
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+        }
+
+        .groups-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .group-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .group-card:hover {
+            border-color: var(--accent);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .group-title {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .group-meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .group-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .icon-btn.danger:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .group-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .group-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .members-list {
+            margin-top: 1rem;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .member-name {
+            font-weight: 500;
+        }
+
+        .member-role {
+            padding: 0.2rem 0.6rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .member-role.admin {
+            background: var(--warning);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👥 Group Manager</h1>
+        <a href="index.html" class="back-btn">← Back to Admin</a>
+    </div>
+
+    <div class="container">
+        <div class="toolbar">
+            <input type="text" id="searchBox" class="search-box" placeholder="Search groups...">
+            <button class="btn btn-primary" onclick="refresh()">🔄 Refresh</button>
+        </div>
+
+        <div id="groupsContainer">
+            <div class="loading">Loading groups...</div>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Group</h2>
+                <button class="close-btn" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Group Name</label>
+                <input type="text" id="editName" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="editDescription" rows="4" maxlength="500"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveGroup()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Group</h2>
+                <button class="close-btn" onclick="closeDeleteModal()">×</button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                Are you sure you want to delete <strong id="deleteGroupName"></strong>?
+                This will remove all members but will NOT delete any movies.
+            </p>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete Group</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_URL = '../api/api.php';
+        let groups = [];
+        let currentEditGroup = null;
+        let currentDeleteGroup = null;
+
+        // Load groups on page load
+        loadGroups();
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            renderGroups(groups.filter(g =>
+                g.name.toLowerCase().includes(query) ||
+                (g.description && g.description.toLowerCase().includes(query))
+            ));
+        });
+
+        async function loadGroups() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'list_groups',
+                        user: 'admin'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.ok) {
+                    groups = result.data;
+
+                    // Load members for each group
+                    for (let group of groups) {
+                        await loadGroupMembers(group);
+                    }
+
+                    renderGroups(groups);
+                } else {
+                    showToast('Error loading groups: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to load groups', 'error');
+            }
+        }
+
+        async function loadGroupMembers(group) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'list_group_members',
+                        user: 'admin',
+                        group_id: group.id
+                    })
+                });
+
+                const result = await response.json();
+                if (result.ok) {
+                    group.members = result.data;
+                }
+            } catch (error) {
+                console.error('Error loading members:', error);
+            }
+        }
+
+        function renderGroups(groupsToRender) {
+            const container = document.getElementById('groupsContainer');
+
+            if (groupsToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <h2>No Groups Found</h2>
+                        <p>Create groups from the main app</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '<div class="groups-grid">' + groupsToRender.map(group => `
+                <div class="group-card">
+                    <div class="group-header">
+                        <div>
+                            <div class="group-title">${escapeHtml(group.name)}</div>
+                            <div class="group-meta">
+                                Created by ${escapeHtml(group.creator_name)} •
+                                ${new Date(group.created_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <div class="group-actions">
+                            <button class="icon-btn" onclick="editGroup(${group.id})" title="Edit">✏️</button>
+                            <button class="icon-btn danger" onclick="deleteGroup(${group.id})" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+
+                    ${group.description ? `
+                        <div class="group-description">${escapeHtml(group.description)}</div>
+                    ` : ''}
+
+                    <div class="group-stats">
+                        <div class="stat">
+                            <div class="stat-value">${group.member_count || 0}</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                    </div>
+
+                    ${group.members && group.members.length > 0 ? `
+                        <div class="members-list">
+                            <strong style="color: var(--text-secondary); font-size: 0.9rem;">Members:</strong>
+                            ${group.members.map(member => `
+                                <div class="member-item">
+                                    <div class="member-info">
+                                        <span class="member-name">${escapeHtml(member.username)}</span>
+                                        <span class="member-role ${member.role}">${member.role}</span>
+                                    </div>
+                                    ${member.role !== 'admin' ? `
+                                        <button class="icon-btn danger" onclick="removeMember(${group.id}, ${member.user_id}, '${escapeHtml(member.username)}')" title="Remove">✕</button>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('') + '</div>';
+        }
+
+        function editGroup(groupId) {
+            currentEditGroup = groups.find(g => g.id === groupId);
+            if (!currentEditGroup) return;
+
+            document.getElementById('editName').value = currentEditGroup.name;
+            document.getElementById('editDescription').value = currentEditGroup.description || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditGroup = null;
+        }
+
+        async function saveGroup() {
+            if (!currentEditGroup) return;
+
+            const name = document.getElementById('editName').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+
+            if (!name) {
+                showToast('Group name is required', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'update_group',
+                        user: 'admin',
+                        group_id: currentEditGroup.id,
+                        name: name,
+                        description: description
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.ok) {
+                    showToast('Group updated successfully', 'success');
+                    closeEditModal();
+                    loadGroups();
+                } else {
+                    showToast('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to update group', 'error');
+            }
+        }
+
+        function deleteGroup(groupId) {
+            currentDeleteGroup = groups.find(g => g.id === groupId);
+            if (!currentDeleteGroup) return;
+
+            document.getElementById('deleteGroupName').textContent = currentDeleteGroup.name;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            currentDeleteGroup = null;
+        }
+
+        async function confirmDelete() {
+            if (!currentDeleteGroup) return;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'delete_group',
+                        user: 'admin',
+                        group_id: currentDeleteGroup.id
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.ok) {
+                    showToast('Group deleted successfully', 'success');
+                    closeDeleteModal();
+                    loadGroups();
+                } else {
+                    showToast('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to delete group', 'error');
+            }
+        }
+
+        async function removeMember(groupId, userId, username) {
+            if (!confirm(`Remove ${username} from this group?`)) return;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'remove_group_member',
+                        user: 'admin',
+                        group_id: groupId,
+                        member_user_id: userId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.ok) {
+                    showToast('Member removed successfully', 'success');
+                    loadGroups();
+                } else {
+                    showToast('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to remove member', 'error');
+            }
+        }
+
+        function refresh() {
+            loadGroups();
+            showToast('Refreshed', 'success');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
