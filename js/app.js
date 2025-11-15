@@ -3113,7 +3113,5 @@ return {
 
 })();
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-});
+// Note: App.init() is now called by the script loader in index.html
+// after all scripts have finished loading

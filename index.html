@@ -720,9 +720,52 @@
     <!-- Status Toast -->
     <div id="statusToast" class="toast"></div>
 
-    <!-- Scripts -->
-    <script src="js/trivia.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Scripts - Loaded dynamically with cache busting -->
+    <script>
+        // Load scripts with version-based cache busting
+        (function() {
+            function loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.body.appendChild(script);
+                });
+            }
+
+            // Fetch version and load scripts
+            fetch('/get-version.php?t=' + Date.now())
+                .then(r => r.json())
+                .then(data => {
+                    const v = data.version;
+                    console.log('[ScriptLoader] Loading scripts with version:', v);
+                    // Load trivia.js first, then app.js (order matters)
+                    return loadScript('js/trivia.js?v=' + v)
+                        .then(() => loadScript('js/app.js?v=' + v));
+                })
+                .then(() => {
+                    // Scripts loaded successfully, initialize app
+                    console.log('[ScriptLoader] Scripts loaded, initializing app...');
+                    if (typeof App !== 'undefined' && App.init) {
+                        App.init();
+                    } else {
+                        console.error('[ScriptLoader] App object not found!');
+                    }
+                })
+                .catch(err => {
+                    console.error('[ScriptLoader] Failed to load scripts:', err);
+                    // Fallback: load without version
+                    return loadScript('js/trivia.js')
+                        .then(() => loadScript('js/app.js'))
+                        .then(() => {
+                            if (typeof App !== 'undefined' && App.init) {
+                                App.init();
+                            }
+                        });
+                });
+        })();
+    </script>
 <!-- Create Group Modal -->
 <div id="createGroupModal" class="modal">
     <div class="modal-content">

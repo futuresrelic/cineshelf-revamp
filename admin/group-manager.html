@@ -473,7 +473,7 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        action: 'list_groups',
+                        action: 'admin_list_all_groups',
                         user: 'admin'
                     })
                 });
@@ -634,11 +634,19 @@
         }
 
         function deleteGroup(groupId) {
+            console.log('[DELETE] deleteGroup called with ID:', groupId);
+            console.log('[DELETE] Current groups:', groups);
             currentDeleteGroup = groups.find(g => g.id === groupId);
-            if (!currentDeleteGroup) return;
+            console.log('[DELETE] Found group:', currentDeleteGroup);
+
+            if (!currentDeleteGroup) {
+                console.error('[DELETE] Group not found with ID:', groupId);
+                return;
+            }
 
             document.getElementById('deleteGroupName').textContent = currentDeleteGroup.name;
             document.getElementById('deleteModal').classList.add('active');
+            console.log('[DELETE] Modal opened for group:', currentDeleteGroup.name);
         }
 
         function closeDeleteModal() {
@@ -647,60 +655,94 @@
         }
 
         async function confirmDelete() {
-            if (!currentDeleteGroup) return;
+            console.log('[DELETE] confirmDelete called');
+            console.log('[DELETE] currentDeleteGroup:', currentDeleteGroup);
+
+            if (!currentDeleteGroup) {
+                console.error('[DELETE] No group selected for deletion');
+                return;
+            }
+
+            const requestData = {
+                action: 'delete_group',
+                user: 'admin',
+                group_id: currentDeleteGroup.id
+            };
+
+            console.log('[DELETE] Sending request to API:', requestData);
+            console.log('[DELETE] API URL:', API_URL);
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        action: 'delete_group',
-                        user: 'admin',
-                        group_id: currentDeleteGroup.id
-                    })
+                    body: JSON.stringify(requestData)
                 });
 
+                console.log('[DELETE] Response status:', response.status);
+                console.log('[DELETE] Response headers:', Object.fromEntries(response.headers.entries()));
+
                 const result = await response.json();
+                console.log('[DELETE] API response:', result);
 
                 if (result.ok) {
+                    console.log('[DELETE] ✓ Group deleted successfully');
                     showToast('Group deleted successfully', 'success');
                     closeDeleteModal();
                     loadGroups();
                 } else {
+                    console.error('[DELETE] ✗ API returned error:', result.error);
                     showToast('Error: ' + result.error, 'error');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showToast('Failed to delete group', 'error');
+                console.error('[DELETE] ✗ Exception occurred:', error);
+                console.error('[DELETE] Error stack:', error.stack);
+                showToast('Failed to delete group: ' + error.message, 'error');
             }
         }
 
         async function removeMember(groupId, userId, username) {
-            if (!confirm(`Remove ${username} from this group?`)) return;
+            console.log('[REMOVE MEMBER] removeMember called');
+            console.log('[REMOVE MEMBER] groupId:', groupId, 'userId:', userId, 'username:', username);
+
+            if (!confirm(`Remove ${username} from this group?`)) {
+                console.log('[REMOVE MEMBER] User cancelled removal');
+                return;
+            }
+
+            const requestData = {
+                action: 'remove_group_member',
+                user: 'admin',
+                group_id: groupId,
+                user_id: userId  // Changed from member_user_id to user_id to match API
+            };
+
+            console.log('[REMOVE MEMBER] Sending request:', requestData);
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        action: 'remove_group_member',
-                        user: 'admin',
-                        group_id: groupId,
-                        member_user_id: userId
-                    })
+                    body: JSON.stringify(requestData)
                 });
 
+                console.log('[REMOVE MEMBER] Response status:', response.status);
+
                 const result = await response.json();
+                console.log('[REMOVE MEMBER] API response:', result);
 
                 if (result.ok) {
+                    console.log('[REMOVE MEMBER] ✓ Member removed successfully');
                     showToast('Member removed successfully', 'success');
                     loadGroups();
                 } else {
+                    console.error('[REMOVE MEMBER] ✗ API returned error:', result.error);
                     showToast('Error: ' + result.error, 'error');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showToast('Failed to remove member', 'error');
+                console.error('[REMOVE MEMBER] ✗ Exception occurred:', error);
+                console.error('[REMOVE MEMBER] Error stack:', error.stack);
+                showToast('Failed to remove member: ' + error.message, 'error');
             }
         }
 

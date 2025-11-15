@@ -783,7 +783,32 @@ case 'resolve_movie':
             
             jsonResponse(true, $stmt->fetchAll());
             break;
-        
+
+        case 'admin_list_all_groups':
+            // Admin-only: List ALL groups regardless of membership
+            if (!isAdmin($user)) {
+                jsonResponse(false, null, 'Admin access required');
+            }
+
+            $stmt = $db->prepare("
+                SELECT
+                    g.id,
+                    g.name,
+                    g.description,
+                    g.created_at,
+                    u.username as creator_name,
+                    COUNT(DISTINCT gm.user_id) as member_count
+                FROM groups g
+                JOIN users u ON g.created_by = u.id
+                LEFT JOIN group_members gm ON g.id = gm.group_id
+                GROUP BY g.id
+                ORDER BY g.name ASC
+            ");
+            $stmt->execute();
+
+            jsonResponse(true, $stmt->fetchAll());
+            break;
+
         case 'add_group_member':
             $groupId = intval($input['group_id'] ?? 0);
             $memberUsername = sanitize($input['username'] ?? '', 50);
@@ -836,20 +861,25 @@ case 'resolve_movie':
                 jsonResponse(false, null, 'Group ID and user ID required');
             }
             
-            // Check permission
-            $stmt = $db->prepare("
-                SELECT role FROM group_members
-                WHERE group_id = ? AND user_id = ?
-            ");
-            $stmt->execute([$groupId, $userId]);
-            $membership = $stmt->fetch();
-            
-            if (!$membership) {
-                jsonResponse(false, null, 'Not a member of this group');
-            }
-            
-            if ($membership['role'] !== 'admin' && $memberUserId !== $userId) {
-                jsonResponse(false, null, 'Only admins can remove other members');
+            // Check permission - system admin OR group admin OR removing self
+            $isSystemAdmin = isAdmin($user);
+
+            if (!$isSystemAdmin) {
+                // Not a system admin, check group membership
+                $stmt = $db->prepare("
+                    SELECT role FROM group_members
+                    WHERE group_id = ? AND user_id = ?
+                ");
+                $stmt->execute([$groupId, $userId]);
+                $membership = $stmt->fetch();
+
+                if (!$membership) {
+                    jsonResponse(false, null, 'Not a member of this group');
+                }
+
+                if ($membership['role'] !== 'admin' && $memberUserId !== $userId) {
+                    jsonResponse(false, null, 'Only admins can remove other members');
+                }
             }
             
             // Remove
@@ -1063,16 +1093,21 @@ case 'resolve_movie':
                 jsonResponse(false, null, 'Group ID required');
             }
 
-            // Check if user is admin of the group
-            $stmt = $db->prepare("
-                SELECT role FROM group_members
-                WHERE group_id = ? AND user_id = ?
-            ");
-            $stmt->execute([$groupId, $userId]);
-            $membership = $stmt->fetch();
+            // Check if user is system admin OR group admin
+            $isSystemAdmin = isAdmin($user);
 
-            if (!$membership || $membership['role'] !== 'admin') {
-                jsonResponse(false, null, 'Only group admins can delete groups');
+            if (!$isSystemAdmin) {
+                // Not a system admin, check if they're a group admin
+                $stmt = $db->prepare("
+                    SELECT role FROM group_members
+                    WHERE group_id = ? AND user_id = ?
+                ");
+                $stmt->execute([$groupId, $userId]);
+                $membership = $stmt->fetch();
+
+                if (!$membership || $membership['role'] !== 'admin') {
+                    jsonResponse(false, null, 'Only group admins can delete groups');
+                }
             }
 
             // Delete group members first (foreign key constraint)
